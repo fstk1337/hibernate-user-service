@@ -7,7 +7,6 @@ public interface Dao<T> {
     Optional<T> findOneById(Long id);
     List<T> findAll();
     T save(T t);
-    List<T> saveAll(T[] ts);
-    void update(T t);
-    void delete(T t);
+    Long update(T t);
+    Long delete(T t);
 }

@@ -65,20 +65,7 @@ public class UserDao implements Dao<User> {
     }
 
     @Override
-    public List<User> saveAll(User ...users) {
-        List<User> newUsers = new ArrayList<>();
-        Arrays.stream(users).forEach(user -> {
-            User newUser = this.save(user);
-            if (Objects.nonNull(newUser)) {
-                newUsers.add(newUser);
-            }
-        });
-        System.out.println("In total: " + newUsers.size() + " users were created.");
-        return newUsers;
-    }
-
-    @Override
-    public void update(User user) {
+    public Long update(User user) {
         Optional<User> oldUser;
         if (Objects.isNull(user.getId())) {
             oldUser = this.findByEmail(user.getEmail());
@@ -87,20 +74,22 @@ public class UserDao implements Dao<User> {
         }
         if (Objects.isNull(oldUser.orElse(null))) {
             System.out.println("User not found, cannot update.");
-            return;
+            return 0L;
         }
         if (oldUser.get().getEmail().equals(user.getEmail()) && !oldUser.get().getId().equals(user.getId())) {
-            System.out.println("Cannot update user email, because such one already exists.");
+            System.out.println("Cannot update user, because such email already exists.");
+            return 0L;
         } else {
             session.beginTransaction();
-            session.merge(user);
+            Long id = session.merge(user).getId();
             session.getTransaction().commit();
             System.out.println("The user was updated.");
+            return id;
         }
     }
 
     @Override
-    public void delete(User user) {
+    public Long delete(User user) {
         Optional<User> oldUser;
         if (Objects.isNull(user.getId())) {
             oldUser = this.findByEmail(user.getEmail());
@@ -109,11 +98,13 @@ public class UserDao implements Dao<User> {
         }
         if (Objects.isNull(oldUser.orElse(null)) || !oldUser.get().equals(user)) {
             System.out.println("User not found, cannot delete.");
+            return 0L;
         } else {
             session.beginTransaction();
             session.remove(oldUser.get());
             session.getTransaction().commit();
             System.out.println("The user was removed.");
+            return oldUser.get().getId();
         }
     }
 }
